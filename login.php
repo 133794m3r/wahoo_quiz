@@ -1,6 +1,8 @@
 <?php
+	session_start();
 	require_once 'config.php';
 	require_once 'main/functions.php';
+	$_SESSION['show_captcha'] = false;
 	if($_SERVER['REQUEST_METHOD'] == 'POST') {
 		if ($_SESSION['show_captcha'] && !isset($_POST['captcha'])) {
 			$captcha_msg = 'No Captcha message provided.';
@@ -9,7 +11,7 @@
 			$captcha_msg = 'Invalid captcha received.';
 		}
 		else {
-			if ($_POST['username'] == 'user' && $_POST['password'] = 'password') {
+			if (login($_POST['username'],$_POST['password'])) {
 				header('Location: index.php');
 				$_SESSION['show_captcha'] = false;
 				$_SESSION['bad_logins'] = 0;
@@ -17,8 +19,8 @@
 			else {
 				$error_message = "Username/Password is wrong";
 				$_SESSION['bad_logins']++;
-				if ($_SESSION['bad_logins'] > 5)
-					$_SESSION['show_captcha'] = true;
+//				if ($_SESSION['bad_logins'] > 5)
+//					$_SESSION['show_captcha'] = true;
 			}
 		}
 	}
@@ -30,18 +32,15 @@
 			$_SESSION['show_captcha'] = false;
 			$_SESSION['bad_logins'] = 0;
 		}
-?>
-<?php
 $title='Wahoo! Login Page';include('templates/header.php')
 ?>
-		<div class="container-lg container min-100-vh">
+	<div class="">
 			<h2>Login</h2>
 
 			<?php
 			if(isset($error_message))
 				echo "<div>$error_message</div>"
 			?>
-
 			<form action="login.php" method="post" id="login">
 				<?php echo generate_csrf(); ?>
 				<div class="form-group">
@@ -93,7 +92,39 @@ $title='Wahoo! Login Page';include('templates/header.php')
 			</form>
 
 			Don't have an account? <a href='register.php'>Register here.</a>
-		</div>
+
+		</main>
+	</div>
+</div>
 <?php include('footer.inc'); ?>
+	<script type="text/javascript">
+		document.addEventListener("DOMContentLoaded",()=>{
+			document.getElementById("check_captcha").addEventListener("click",event=>{check_captcha()});
+		})
+		function check_captcha(){
+			const ans_el = document.getElementById('year');
+			const letters_el = document.getElementById('letters');
+			const ans = parseInt(ans_el.value);
+			const letters = letters_el.value;
+			const content = {'captcha_ans':ans,"letters":letters}
+			letters_el.value = '';
+			ans_el.value = '';
+			submit("/captcha.php",content,resp=>{
+				if(resp.error){
+					document.getElementById('content_msg').innerText = resp.captcha;
+					document.getElementById('year_container').hidden = false;
+					document.getElementById('solved_it').hidden = true;
+					document.getElementById('alert_msg_captcha').innerHTML = `<div class="alert alert-warning alert-dismissible fade show" role="alert" id="alert_item"> ${resp.msg}</div>`;
+					window.setTimeout(()=>{
+						$('#alert_item').alert('close');
+					},3500);
+				}
+				else{
+					document.getElementById('year_container').hidden = true;
+					document.getElementById('solved_it').hidden = false;
+				}
+			});
+		}
+	</script>
 	</body>
 </html>

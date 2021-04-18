@@ -37,3 +37,34 @@
 		</script>
 	</head>
 	<body>
+		<div class="cover-container d-flex h-100 mx-auto flex-column">
+			<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+				<span class="navbar-brand">Wahoo Quiz</span>
+				<button class="navbar-toggler" type="button" data-toggle="collapse"
+						data-target="#navbar_nav" aria-controls="navbar_nav"
+						aria-expanded="false" aria-label="Toggle">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="collapse navbar-collapse" id="navbar_nav">
+					<ul class="navbar-nav mr-auto">
+						<li class="nav-item">
+							<a class="nav-link" href="/index.php">Home</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="/login.php">Login</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" href="/register.php">Register</a>
+						</li>
+						<?php
+							if(isset($_SESSION['username'])){
+								if ($_SESSION['role'] < 2) {
+									echo '<li class="nav-item"><a class="nav-link" href="/admin/question_admin.php">Quiz Editor</a></li>';
+									echo '<li class="nav-item"><a class="nav-link" href="/admin/user_quizzes.php">'.$_SESSION['username'].'\'s Quizzes</a>';
+								}
+							}
+						?>
+					</ul>
+				</div>
+			</nav>
+			<main class="text-center container-lg pt-4" id="main_area" role="main">
