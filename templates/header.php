@@ -50,20 +50,22 @@
 						<li class="nav-item">
 							<a class="nav-link" href="/index.php">Home</a>
 						</li>
+
+						<?php if($_SESSION['admin']): ?>
+							<li class="nav-item"><a class="nav-link" href="/admin/question_admin.php">Master Quiz Creator</a></li>
+						<?php endif ?>
+						<?php if(isset($_SESSION['username'])): ?>
+							<li class="nav-item"><a class="nav-link" href="/main/quiz_creator.php">Quiz Creator</a></li>
+							<li class="nav-item"><a class="nav-link" href="/main/user_quizzes.php"><?php echo $_SESSION['username'] ?>'s Quizzes</a>
+							<li class="nav-item"><a class="nav-link" href="/logout.php">Log out</a></li>
+						<?php else: ?>
 						<li class="nav-item">
 							<a class="nav-link" href="/login.php">Login</a>
 						</li>
 						<li class="nav-item">
 							<a class="nav-link" href="/register.php">Register</a>
 						</li>
-						<?php
-							if(isset($_SESSION['username'])){
-								if ($_SESSION['role'] < 2) {
-									echo '<li class="nav-item"><a class="nav-link" href="/admin/question_admin.php">Quiz Editor</a></li>';
-									echo '<li class="nav-item"><a class="nav-link" href="/admin/user_quizzes.php">'.$_SESSION['username'].'\'s Quizzes</a>';
-								}
-							}
-						?>
+						<?php endif; ?>
 					</ul>
 				</div>
 			</nav>

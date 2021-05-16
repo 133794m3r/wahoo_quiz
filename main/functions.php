@@ -44,6 +44,24 @@ function generate_csrf(){
 	return "<input id='csrf' name='csrf' type='hidden' value='$token' />";
 }
 
+//raises a sepcific HTTP error on the header and causes the connection to die optionally.
+function raise_http_error($error_code,$die=true){
+	$res = 'HTTP/1.0 ';
+	switch($error_code){
+		case 405:
+			$res .= '405 Method Not Allowed';
+			break;
+		case 403:
+			$res .= '403 Forbidden';
+			break;
+		case 400:
+			$res .= ' 400 Bad Request';
+			break;
+	}
+	header($res,$error_code);
+	if($die)
+		exit();
+}
 function parse_json_post() {
 	$json_params = file_get_contents('php://input');
 	if(strlen($json_params) > 0)
@@ -57,12 +75,19 @@ function parse_json_post() {
 		return $json_data;
 }
 
+function b64_encode($str){
+	return str_replace(['+','/','='],['-','_',''],base64_encode($str));
+}
+function b64_decode($str){
+	return base64_decode(str_replace(['-','_'],['+','/'],$str));
+}
+
 function login($username,$password): bool {
 	global $QUIZ;
-	$stmt = $QUIZ->prepare("select password,password_upper,`role` from users where username=? LIMIT 1");
+	$stmt = $QUIZ->prepare("select password,password_upper,`role`,id from users where username=? LIMIT 1");
 	$username = $QUIZ->real_escape_string($username);
 	$stmt->bind_param('s', $username);
-	$stmt->bind_result($res_password,$res_upper,$role);
+	$stmt->bind_result($res_password,$res_upper,$role,$user_id);
 	$res = $stmt->execute();
 	$stmt->store_result();
 	if($stmt->num_rows == 1){
@@ -70,6 +95,7 @@ function login($username,$password): bool {
 		$password_upper = ucfirst($password);
 		if(password_verify($password,$res_password) || password_verify($password_upper, $res_upper)){
 			$_SESSION['username'] = $username;
+			$_SESSION['id'] = $user_id;
 			if($role < 2)
 				//for now it is letting all of them be admin but that'll change later.
 				$_SESSION['admin'] = true;

@@ -25,7 +25,7 @@
 		}
 	}
 	else if($_SERVER['REQUEST_METHOD'] !== 'GET')
-		exit();
+		header('HTTP/1.0 405 Method Not Allowed',405);
 	else if ($_SERVER['REQUEST_METHOD'] == 'GET')
 		if(!isset($_SESSION)) {
 			session_start();

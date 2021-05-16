@@ -23,6 +23,5 @@ else{
 $title="Wahoo Quiz";include('templates/header.php');
 ?>
 
-		</main>
-	</body>
-</html>
+
+<?php include('templates/footer.php'); ?>
