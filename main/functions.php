@@ -21,14 +21,13 @@ function generate_captcha(){
 			$c = $a*$b;
 			if($b > $a) {
 				$ans = $a;
-				$a = $c;
 			}
 			else{
 				$ans = $b;
 				$b = $a;
-				$a = $c;
 			}
-			$op = (rand(1,3))?"divided by":'/';
+			$a = $c;
+			$op = (rand(0,3))?"divided by":'/';
 			break;
 	}
 	$_SESSION['captcha'] = $ans;
@@ -36,7 +35,7 @@ function generate_captcha(){
 	$b = (rand(1,5)==1)?$num_str[$b]:$b;
 	return "$a $op $b";
 }
-function generate_csrf(){
+function generate_csrf(): string {
 	$r = session_id().mt_rand().microtime();
 	$hash = hash('sha256',$r,true);
 	$token = hash('sha256',CSRF_TOKEN_SALT,true);
@@ -54,9 +53,14 @@ function raise_http_error($error_code,$die=true){
 		case 403:
 			$res .= '403 Forbidden';
 			break;
+		case 401:
+			$res .= '401 Unauthorized';
+			break;
 		case 400:
 			$res .= ' 400 Bad Request';
 			break;
+		case 500:
+			$res .= ' 500 Internal Server Error';
 	}
 	header($res,$error_code);
 	if($die)
@@ -84,7 +88,7 @@ function b64_decode($str){
 
 function login($username,$password): bool {
 	global $QUIZ;
-	$stmt = $QUIZ->prepare("select password,password_upper,`role`,id from users where username=? LIMIT 1");
+	$stmt = $QUIZ->prepare('select password,password_upper,id from users where username=? LIMIT 1');
 	$username = $QUIZ->real_escape_string($username);
 	$stmt->bind_param('s', $username);
 	$stmt->bind_result($res_password,$res_upper,$role,$user_id);
@@ -96,9 +100,10 @@ function login($username,$password): bool {
 		if(password_verify($password,$res_password) || password_verify($password_upper, $res_upper)){
 			$_SESSION['username'] = $username;
 			$_SESSION['id'] = $user_id;
-			if($role < 2)
+			$_SESSION['role'] = $role;
+			if($role < 3)
 				//for now it is letting all of them be admin but that'll change later.
-				$_SESSION['admin'] = true;
+				$_SESSION['editor'] = true;
 			return true;
 		}
 		else{
