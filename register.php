@@ -5,13 +5,15 @@
 	require_once 'config.php';
 	$title='Wahoo! Registration Page';include('templates/header.php');
 	if($_POST){
-		if($_POST['password'] != $_POST['password_confirm'])
-			$error_message = 'Password confirmation doesn\'t match.';
-		else {
-			if (register($_POST['username'], $_POST['password']))
-				header('location:index.php');
-			else{
-				$error_message = 'Username is already taken.';
+		if($_POST['csrf_token'] == $_SESSION['csrf_token']) {
+			if ($_POST['password'] != $_POST['password_confirm'])
+				$error_message = 'Password confirmation doesn\'t match.';
+			else {
+				if (register($_POST['username'], $_POST['password']))
+					header('location:index.php');
+				else {
+					$error_message = 'Username is already taken.';
+				}
 			}
 		}
 	}
@@ -94,7 +96,7 @@
 						<button type="button" class="btn btn-secondary" id="check_captcha" >Check Captcha</button>
 					</div>
 				</div>
-
+				<?php echo generate_csrf(); ?>
 				<input type="text" name="password_score" id="password_score" hidden="true" aria-hidden="true" />
 				<div class="align-center row pt-3">
 					<div class="col-lg-auto">

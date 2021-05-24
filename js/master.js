@@ -1,7 +1,7 @@
 /**
- * CTFClub Project
+ * Wahoo Quiz Project
  * Macarthur Inbody <admin-contact@transcendental.us>
- * Licensed under AGPLv3 Or Later (2020)
+ * Licensed under AGPLv3 Or Later (2021)
  */
 
 /**
@@ -13,12 +13,12 @@
  * @param {function(...[*]=)} callback A function to be called on the end of the fetch request.
  */
 function submit(route,content,callback){
-	const csrftoken = cookie_value('csrftoken');
+	//not used right now b/c it's an AJAX request by using this header and CORS CSRF won't work.
+	// const csrftoken = cookie_value('csrftoken');
 	fetch(route,{
 		method:"POST",
 		headers:{
 			'Content-Type':'application/json',
-			'X-CSRFToken':csrftoken,
 			'X-Requested-With':'XMLHttpRequest'
 		},
 		referrerPolicy: "same-origin",
@@ -44,7 +44,7 @@ function submit(route,content,callback){
  * @param {function(...[*]=)} callback The callback function to call upon the end of the fetch request.
  */
 function get(route,callback){
-	fetch(`${route}`,{
+	fetch(route,{
 		referrerPolicy: "same-origin",
 	})
 		.then(response =>response.json())

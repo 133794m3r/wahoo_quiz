@@ -4,23 +4,31 @@
 	require_once 'main/functions.php';
 	$_SESSION['show_captcha'] = false;
 	if($_SERVER['REQUEST_METHOD'] == 'POST') {
-		if ($_SESSION['show_captcha'] && !isset($_POST['captcha'])) {
-			$captcha_msg = 'No Captcha message provided.';
-		}
-		else if($_SESSION['show_captcha'] && $_SESSION['captcha'] !== $_POST['captcha']){
-			$captcha_msg = 'Invalid captcha received.';
-		}
-		else {
-			if (login($_POST['username'],$_POST['password'])) {
-				header('Location: index.php');
-				$_SESSION['show_captcha'] = false;
-				$_SESSION['bad_logins'] = 0;
+		//make sure that they did provide the right token.
+		if($_SESSION['csrf_token'] == $_POST['csrf_token']) {
+			if ($_SESSION['show_captcha'] && !isset($_POST['captcha'])) {
+				$captcha_msg = 'No Captcha message provided.';
+			}
+			else if ($_SESSION['show_captcha'] && $_SESSION['captcha'] !== $_POST['captcha']) {
+				$captcha_msg = 'Invalid captcha received.';
 			}
 			else {
-				$error_message = "Username/Password is wrong";
-				$_SESSION['bad_logins']++;
-//				if ($_SESSION['bad_logins'] > 5)
-//					$_SESSION['show_captcha'] = true;
+				if($_SESSION['show_captcha']) {
+					//they solved one so turn it off.
+					$_SESSION['show_captcha'] = false;
+					$_SESSION['bad_logins'] = 0;
+				}
+				if (login($_POST['username'], $_POST['password'])) {
+					header('Location: index.php');
+					$_SESSION['bad_logins'] = 0;
+				}
+				else {
+					$error_message = "Username/Password is wrong";
+					if ($_SESSION['bad_logins'] > 4)
+						$_SESSION['show_captcha'] = true;
+
+					$_SESSION['bad_logins']++;
+				}
 			}
 		}
 	}

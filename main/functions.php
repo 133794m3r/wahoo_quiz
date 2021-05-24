@@ -40,6 +40,7 @@ function generate_csrf(): string {
 	$hash = hash('sha256',$r,true);
 	$token = hash('sha256',CSRF_TOKEN_SALT,true);
 	$token = hash('sha256',$token.$hash);
+	$_SESSION['csrf_token'] = $token;
 	return "<input id='csrf' name='csrf' type='hidden' value='$token' />";
 }
 
@@ -101,6 +102,7 @@ function login($username,$password): bool {
 			$_SESSION['username'] = $username;
 			$_SESSION['id'] = $user_id;
 			$_SESSION['role'] = $role;
+			//0 = sysadmin, 1=admin, 2 = editor as in they can edit their own questions/create them.
 			if($role < 3)
 				//for now it is letting all of them be admin but that'll change later.
 				$_SESSION['editor'] = true;
