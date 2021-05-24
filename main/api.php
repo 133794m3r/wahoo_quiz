@@ -8,13 +8,13 @@ if(!isset($_SERVER['X-Requested-With']) && $_SERVER['X-Requested-With'] != 'XMLH
 	exit();
 }
 
-session_start();
+session_start(array('lock'=>false));
 
 require_once('../main/functions.php');
 //we only accept JSON apis
 $json_params = parse_json_post();
 //this means they didn't give us valid json. Time to die.
-if($json_params == false)
+if($json_params === false)
 	exit();
 
 require_once('../config.php');
@@ -75,18 +75,18 @@ switch($json_params['cmd']){
 			raise_http_error(403);
 
 		$query = 'update quizzes set name = ? where id = ?';
-		if($_SESSION['role'] == 2)
+		if($_SESSION['role'] === 2)
 			$query .= 'and owner_id = ?';
 
 		$stmt = $QUIZ->prepare($query);
-		if($_SESSION['role'] == 2)
+		if($_SESSION['role'] === 2)
 			$stmt->bind_param('sdd',$json_params['quiz_name'],$json_params['quiz_id'],$_SESSION['id']);
 		else
 			$stmt->bind_param('sd',$json_params['quiz_name'],$json_params['quiz_id']);
 
 		if(!$stmt->execute())
 			raise_http_error(500);
-		if($stmt->affected_rows == 0)
+		if($stmt->affected_rows === 0)
 			$final_result = array('ok'=>false, 'error'=>'No rows changed. Improper values received.');
 		else
 			$final_result = array('ok'=>true, 'error'=>'Updated successfully');
@@ -99,11 +99,11 @@ switch($json_params['cmd']){
 			$_SESSION['question_id'] = $res['id'];
 			$res = $QUIZ->query('select id,text,correct from question_answers where question_id = '.$res['id']);
 			$final_result = array('ok'=>true,'error'=>'','answers'=>array());
-
+			$_SESSION['correct_answers'] = array();
 			while($row = $res->fetch_array()) {
 				array_push($final_result['answers'], "$row[0],$row[1]");
 				if($row[2])
-					$_SESSION['correct_answer'] = $row[0];
+					array_push($_SESSION['correct_answers'], $row[2]);
 			}
 			$_SESSION['total'] += 1;
 		}
@@ -116,7 +116,7 @@ switch($json_params['cmd']){
 		if(!isset($json_params['answer']))
 			raise_http_error(400);
 
-		if($json_params['answer'] == $_SESSION['correct_answer']) {
+		if(array_search($json_params['answer'],$_SESSION['correct_answer'])) {
 			$_SESSION['correct'] += 1;
 			$final_result = array('ok'=>true,'error'=>'');
 		}
@@ -126,10 +126,13 @@ switch($json_params['cmd']){
 		break;
 
 	case 'update_question':
-		if(!isset($json_params['quiz_id']) || !isset($json_params['question_id']) || !isset($json_params['text'])){
-			$final_result = array('ok'=>false,error=>'Not all required parameters sent.');
+		if(!isset($_SESSION['role'])){
+			raise_http_error(401);
 		}
-		else if($_SESSION['role'] == 2 && !array_search($json_params['quiz_id'],$_SESSION['quiz_ids'])){
+		else if(!isset($json_params['quiz_id']) || !isset($json_params['question_id']) || !isset($json_params['text'])){
+			$final_result = array('ok'=>false,'error'=>'Not all required parameters sent.');
+		}
+		else if($_SESSION['role'] === 2 && !array_search($json_params['quiz_id'],$_SESSION['quiz_ids'])){
 			$final_result = array('ok'=>false,'error'=>'Quiz not found.');
 		}
 		else {
@@ -150,7 +153,8 @@ switch($json_params['cmd']){
 		break;
 
 	case 'edit_question':
-		if($_SESSION['role'] > 2)
+
+		if(!isset($_SESSION['role']) || $_SESSION['role'] > 2)
 			raise_http_error(403);
 
 		if(!isset($json_params['quiz_id']) || !isset($json_params['question_id'])){
@@ -161,17 +165,17 @@ switch($json_params['cmd']){
 			//absolutely god awful code but oh well.
 			$q = 'select qa.id as id ,qa.text as text ,qa.correct as correct from question_answers qa inner join questions q inner join quizzes where question_id = ? and quiz_id = ?';
 			//this is ungodly ugly but it works.
-			if($_SESSION['role'] == 2)
+			if($_SESSION['role'] === 2)
 				$q .= ' and owner_id = ?';
 			$stmt = $QUIZ->prepare($q);
-			if ($_SESSION['role'] == 2)
+			if ($_SESSION['role'] === 2)
 				$stmt->bind_param('ddd',$json_params['quiz_id'],$json_params['question_id'],$_SESSION['id']);
 			else
 				$stmt->bind_param('dd',$json_params['quiz_id'],$json_params['question_id']);
 			$stmt->execute();
 			$res = $stmt->get_result();
 			$stmt->close();
-			if($res->num_rows == 0){
+			if($res->num_rows === 0){
 				$final_result['ok'] = false;
 				$final_result['error'] = 'No questions found.';
 			}
@@ -180,7 +184,71 @@ switch($json_params['cmd']){
 			}
 		}
 		break;
+	case 'create_quiz':
+		if(!isset($_SESSION['role']) || $_SESSION['role'] > 2)
+			raise_http_error(403);
 
+		if($_SESSION['lock']) {
+			$final_result['ok'] = false;
+			$final_result['error'] = 'Not done with previous tx yet.';
+		}
+		else if(!isset($json_params['name'])){
+			$final_result['ok'] = false;
+			$final_result['error'] = 'No data given.';
+		}
+		else{
+			$_SESSION['lock'] = true;
+			$stmt = $QUIZ->prepare('insert into quizzes(name,owner_id) values(?,?)');
+			$stmt->bind_param('sd',$json_params['name'],$_SESSION['id']);
+			$stmt->execute();
+			$final_result['quiz_id'] = $stmt->insert_id;
+			array_push($_SESSION['quiz_ids'],$stmt->insert_id);
+			$_SESSION['lock'] = false;
+			$stmt->close();
+		}
+		break;
+	case 'create_question':
+		if(!isset($_SESSION['role']) || $_SESSION['role'] > 2)
+			raise_http_error(403);
+		//the answers is an array of all of the answers so we make sure that it's there.
+		//we also make sure that there's at least 1 marked correct and the length is more than 0.
+		if(!isset($json_params['question_text']) || !isset($json_params['quiz_id'])
+			|| !isset($json_params['question_text']) || !isset($json_params['answers'])
+			|| count($json_params['answers']) === 0)
+			raise_http_error(400);
+
+		//we allow SATA as an option by them just simply selecting more than 1 answer as correct.
+		$correct_count = 0;
+		$query_values = '';
+		$param_types = '';
+		foreach($json_params['answers'] as $item){
+			//should always be an array of 2 values. First should be the answer second is if it's correct.
+			if(count($item) != 2)
+				raise_http_error(400);
+			//increment it by 1.
+			if($item[1] === true)
+				$correct_count++;
+			$query_values .=', (?, ?, ?)';
+			$param_types .= 'dsd';
+		}
+		if($correct_count === 0){
+			$final_result['ok'] = false;
+			$final_result['error'] = 'You need at least one answer to be correct.';
+		}
+		else{
+			$stmt = $QUIZ->prepare('insert into questions(text,quiz_id) values(?,?)');
+			$stmt->bind_param('sd',$json_params['question_text'],$json_params['quiz_id']);
+			$stmt->execute();
+			$question_id = $stmt->insert_id;
+			$stmt->close();
+			$stmt = $QUIZ->prepare('insert into question_answers(question_id, text, correct) '.$query_values);
+			$stmt->bind_param($param_types,...$json_params['answers']);
+			$stmt->execute();
+			error_log($stmt->insert_id,4,'/tmp/php_insert_test.log');
+			$stmt->close();
+			$final_result['ok'] = true;
+		}
+		break;
 	default:
 		//otherwise they're trying something that we're no supporting so bail.
 		raise_http_error(400);
