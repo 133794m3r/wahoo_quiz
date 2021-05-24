@@ -40,7 +40,8 @@
 			$_SESSION['show_captcha'] = false;
 			$_SESSION['bad_logins'] = 0;
 		}
-$title='Wahoo! Login Page';include('templates/header.php')
+$title='Wahoo! Login Page';
+include('templates/header.php')
 ?>
 	<div class="">
 			<h2>Login</h2>

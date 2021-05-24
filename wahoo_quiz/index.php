@@ -20,7 +20,8 @@ else{
 }
 ?>
 <?php
-$title="Wahoo Quiz";include('templates/header.php');
+$title="Wahoo Quiz";
+include('templates/header.php');
 ?>
 
 

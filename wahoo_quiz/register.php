@@ -3,7 +3,8 @@
 	$_SESSION['show_captcha'] = true;
 	require_once 'main/functions.php';
 	require_once 'config.php';
-	$title='Wahoo! Registration Page';include('templates/header.php');
+	$title='Wahoo! Registration Page';
+include('templates/header.php');
 	if($_POST){
 		if($_POST['csrf_token'] == $_SESSION['csrf_token']) {
 			if ($_POST['password'] != $_POST['password_confirm'])
@@ -109,7 +110,7 @@
 <!--</main>-->
 </main>
 </div>
-<script type="text/javascript" defer async src="js/zxcvbn.js"></script>
+<script type="text/javascript" defer async src="static/js/zxcvbn.js"></script>
 <script type="text/javascript">
 	document.addEventListener("DOMContentLoaded",()=>{
 		document.getElementById("check_captcha").addEventListener("click",event=>{check_captcha()});
