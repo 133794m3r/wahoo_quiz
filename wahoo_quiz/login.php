@@ -105,7 +105,7 @@ include('templates/header.php')
 		</main>
 	</div>
 </div>
-<?php include('footer.inc'); ?>
+<?php include('templates/footer.inc'); ?>
 	<script type="text/javascript">
 		document.addEventListener("DOMContentLoaded",()=>{
 			document.getElementById("check_captcha").addEventListener("click",event=>{check_captcha()});

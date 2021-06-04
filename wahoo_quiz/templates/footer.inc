@@ -1,1 +1,0 @@
-<script src="static/js/bootstrap.min.js" async="false" defer="true"></script>

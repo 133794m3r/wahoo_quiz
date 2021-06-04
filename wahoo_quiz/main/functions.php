@@ -41,7 +41,7 @@ function generate_csrf(): string {
 	$token = hash('sha256',CSRF_TOKEN_SALT,true);
 	$token = hash('sha256',$token.$hash);
 	$_SESSION['csrf_token'] = $token;
-	return "<input id='csrf' name='csrf' type='hidden' value='$token' />";
+	return "<input id='csrf' name='csrf_token' type='hidden' value='$token' />";
 }
 
 //raises a sepcific HTTP error on the header and causes the connection to die optionally.
@@ -89,15 +89,19 @@ function b64_decode($str){
 
 function login($username,$password): bool {
 	global $QUIZ;
-	$stmt = $QUIZ->prepare('select password,password_upper,id from users where username=? LIMIT 1');
-	$username = $QUIZ->real_escape_string($username);
+	$stmt = $QUIZ->prepare('select password,password_upper,users.role,id from users where username=? LIMIT 1');
+	if(!$stmt)
+		die();
 	$stmt->bind_param('s', $username);
 	$stmt->bind_result($res_password,$res_upper,$role,$user_id);
 	$res = $stmt->execute();
 	$stmt->store_result();
-	if($stmt->num_rows == 1){
-		$stmt->fetch();
+	$stmt->fetch();
+
+	if($stmt->num_rows){
+//		$stmt->fetch();
 		$password_upper = ucfirst($password);
+
 		if(password_verify($password,$res_password) || password_verify($password_upper, $res_upper)){
 			$_SESSION['username'] = $username;
 			$_SESSION['id'] = $user_id;

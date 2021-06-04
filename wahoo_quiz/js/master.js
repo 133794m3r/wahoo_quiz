@@ -12,7 +12,7 @@
  * @param {object} content The parameters/variables that are to be included in the POST request.
  * @param {function(...[*]=)} callback A function to be called on the end of the fetch request.
  */
-function submit(route,content,callback){
+function submit(route,content,callback=null){
 	//not used right now b/c it's an AJAX request by using this header and CORS CSRF won't work.
 	// const csrftoken = cookie_value('csrftoken');
 	fetch(route,{

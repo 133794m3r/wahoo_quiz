@@ -6,12 +6,12 @@
 		</title>
 		<meta charset="UTF-8">
 		<link href="favicon.ico"  rel="shortcut icon">
-		<link href="../static/css/master.css" rel="stylesheet" />
-		<link href="../static/css/bs-darkly.min.css" rel="stylesheet" />
+		<link href="../css/master.css" rel="stylesheet" />
+		<link href="../css/bs-darkly.min.css" rel="stylesheet" />
 
-		<script src="../static/js/jquery.min.js" async></script>
-		<script src="../static/js/master.js" async></script>
-		<script src="../static/js/client.js" async></script>
+		<script src="../js/jquery.min.js" async></script>
+		<script src="../js/master.js" async></script>
+		<script src="../js/client.js" async></script>
 		<script type="text/javascript">
 			(function() {
 
@@ -48,22 +48,22 @@
 				<div class="collapse navbar-collapse" id="navbar_nav">
 					<ul class="navbar-nav mr-auto">
 						<li class="nav-item">
-							<a class="nav-link" href="/application/index.phpon/index.php">Home</a>
+							<a class="nav-link" href="/index.php">Home</a>
 						</li>
 
-						<?php if($_SESSION['admin']): ?>
-							<li class="nav-item"><a class="nav-link" href="/application/admin/question_admin.php">Master Quiz Creator</a></li>
+						<?php if(isset($_SESSION['admin']) && $_SESSION['admin']): ?>
+							<li class="nav-item"><a class="nav-link" href="/admin/question_admin.php">Master Quiz Creator</a></li>
 						<?php endif ?>
 						<?php if(isset($_SESSION['username'])): ?>
-							<li class="nav-item"><a class="nav-link" href="/application/mainication/main/quiz_creator.php">Quiz Creator</a></li>
-							<li class="nav-item"><a class="nav-link" href="/application/mainication/main/user_quizzes.php"><?php echo $_SESSION['username'] ?>'s Quizzes</a>
-							<li class="nav-item"><a class="nav-link" href="/application/logout.php">Log out</a></li>
+							<li class="nav-item"><a class="nav-link" href="/main/quiz_creator.php">Quiz Creator</a></li>
+							<li class="nav-item"><a class="nav-link" href="/main/user_quizzes.php"><?php echo $_SESSION['username'] ?>'s Quizzes</a>
+							<li class="nav-item"><a class="nav-link" href="logout.php">Log out</a></li>
 						<?php else: ?>
 						<li class="nav-item">
-							<a class="nav-link" href="/application/login.php">Login</a>
+							<a class="nav-link" href="login.php">Login</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="/application/register.php">Register</a>
+							<a class="nav-link" href="register.php">Register</a>
 						</li>
 						<?php endif; ?>
 					</ul>

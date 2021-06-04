@@ -110,7 +110,7 @@ include('templates/header.php');
 <!--</main>-->
 </main>
 </div>
-<script type="text/javascript" defer async src="static/js/zxcvbn.js"></script>
+<script type="text/javascript" defer async src="js/zxcvbn.js"></script>
 <script type="text/javascript">
 	document.addEventListener("DOMContentLoaded",()=>{
 		document.getElementById("check_captcha").addEventListener("click",event=>{check_captcha()});
