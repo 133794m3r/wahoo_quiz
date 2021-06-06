@@ -1,4 +1,5 @@
 <?php
+
 if($_SERVER['REQUEST_METHOD'] != 'POST') {
 	header('HTTP/1.0 405 Method Not Allowed', 405);
 	exit();
@@ -13,6 +14,8 @@ $json_params = parse_json_post();
 //this means they didn't give us valid json. Time to die.
 if($json_params === false)
 	exit();
+
+session_start();
 
 require_once('../config.php');
 if(!array_key_exists('role',$_SESSION))
@@ -105,7 +108,7 @@ switch($json_params['cmd']){
 			$final_result['results'] = $res->fetch_all(MYSQLI_ASSOC);
 			$final_result['quiz_id'] = $json_params['quiz_id'];
 		}
-		break
+		break;
 	case 'edit_question':
 		if(!isset($json_params['quiz_id']) || !isset($json_params['question_id'])){
 			$final_result['ok'] = false;
@@ -136,22 +139,54 @@ switch($json_params['cmd']){
 		}
 		break;
 	case 'update_answers':
+		//check that we have the correct parameters
 		if(!array_key_exists('quiz_id',$json_params) || !array_key_exists('question_id',$json_params) || !array_key_exists('answers',$json_params))
 			raise_http_error(400);
 
 		$bound_params = array();
 		$param_str = '';
+		$correct = 0;
 		$q = 'update question_answers set correct = (case question_id ';
 		foreach($json_params['answers'] as $answer ){
 			array_push($bound_params,$answer['id'],$answer['correct']);
 			$q.= 'when ? then ?';
+			if($answer['correct'])
+				$correct++;
 			$param_str .= 'ii';
 		}
 		$q.= 'end) where question_id = ?';
-		$stmt = $QUIZ->prepare($q);
-		$stmt->bind_param(param_str,...$bound_params);
+		if($correct === 0) {
+			$final_result['ok'] = false;
+			$final_result['error'] = 'Must have at least one of them as correct';
+		}
+		else {
+			$stmt = $QUIZ->prepare($q);
+			$stmt->bind_param(param_str, ...$bound_params);
+			$stmt->execute();
+			if($res->num_rows === 0) {
+				$final_result['ok'] = false;
+				error_log(print_r($stmt->error_list));
+				$final_result['error'] = 'Some query error occurred';
+			}
+			$stmt->close();
+		}
 		break;
 	case 'update_answer':
+		if(!array_key_exists('answer_id',$json_params) ||
+			!array_key_exists('question_id',$json_params) ||
+			!array_key_exists('text',$json_params) ||
+			!array_key_exists('correct',$json_params) )
+			raise_http_error(400);
+
+		//this query is bad but I don't know of a better way to make it harder for someone to guess the correct ID of a question and it's matching answers.
+		$stmt = $QUIZ->prepare('update question_answers set text = ?,correct = ? where id = ? and question_id = ?');
+		$stmt->bind_param('siii',$json_params['text'],$json_params['correct'],$json_params['answer_id'],$json_params['question_id']);
+		if(!$stmt->execute()){
+			error_log(print_r($stmt->error_list));
+			$final_result['ok'] = false;
+			$final_result['error'] = 'Something went wrong';
+		}
+		$stmt->close();
 		break;
 	case 'create_quiz':
 
@@ -178,41 +213,44 @@ switch($json_params['cmd']){
 		//the answers is an array of all of the answers so we make sure that it's there.
 		//we also make sure that there's at least 1 marked correct and the length is more than 0.
 		if(!isset($json_params['question_text']) || !isset($json_params['quiz_id'])
-			|| !isset($json_params['question_text']) || !isset($json_params['answers'])
-			|| count($json_params['answers']) === 0)
+			|| !isset($json_params['question_text'])
+			//|| !isset($json_params['answers'])
+			//|| count($json_params['answers']) === 0
+		)
 			raise_http_error(400);
 
 		//we allow SATA as an option by them just simply selecting more than 1 answer as correct.
-		$correct_count = 0;
+		//$correct_count = 0;
 		$query_values = '';
 		$param_types = '';
-		foreach($json_params['answers'] as $item){
-			//should always be an array of 2 values. First should be the answer second is if it's correct.
-			if(count($item) != 2)
-				raise_http_error(400);
-			//increment it by 1.
-			if($item[1] === true)
-				$correct_count++;
-			$query_values .=', (?, ?, ?)';
-			$param_types .= 'isi';
-		}
-		if($correct_count === 0){
-			$final_result['ok'] = false;
-			$final_result['error'] = 'You need at least one answer to be correct.';
-		}
-		else{
+//		foreach($json_params['answers'] as $item){
+//			//should always be an array of 2 values. First should be the answer second is if it's correct.
+//			if(count($item) != 2)
+//				raise_http_error(400);
+//			//increment it by 1.
+//			if($item[1] === true)
+//				$correct_count++;
+//			$query_values .=', (?, ?, ?)';
+//			$param_types .= 'isi';
+//		}
+//		if($correct_count === 0){
+//			$final_result['ok'] = false;
+//			$final_result['error'] = 'You need at least one answer to be correct.';
+//		}
+//		else{
 			$stmt = $QUIZ->prepare('insert into questions(text,quiz_id) values(?,?)');
 			$stmt->bind_param('si',$json_params['question_text'],$json_params['quiz_id']);
 			$stmt->execute();
 			$question_id = $stmt->insert_id;
 			$stmt->close();
-			$stmt = $QUIZ->prepare('insert into question_answers(question_id, text, correct) '.$query_values);
-			$stmt->bind_param($param_types,...$json_params['answers']);
-			$stmt->execute();
-			error_log($stmt->insert_id,4,'/tmp/php_insert_test.log');
-			$stmt->close();
+//			$stmt = $QUIZ->prepare('insert into question_answers(question_id, text, correct) '.$query_values);
+//			$stmt->bind_param($param_types,...$json_params['answers']);
+//			$stmt->execute();
+//			error_log($stmt->insert_id,4,'/tmp/php_insert_test.log');
+//			$stmt->close();
 			$final_result['ok'] = true;
-		}
+			$final_result['id'] = $question_id;
+//		}
 		break;
 }
 

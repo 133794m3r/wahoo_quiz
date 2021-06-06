@@ -66,8 +66,10 @@ function modal_question(question_id){
 	const el  = document.getElementById('update_question');
 	el.dataset.id = question_id;
 	el.dataset.quizid = document.getElementById('update_quiz').dataset.id;
-	if(question_id === -1)
+	if(question_id === -1) {
 		$('#question_modal').modal('toggle');
+		document.getElementById('add_answer').disabled = true;
+	}
 	else{
 		document.getElementById('question_description').innerText = document.getElementById(`question-${question_id}-name`).innerText;
 		submit('/admin/api.php',{
@@ -89,13 +91,14 @@ function modal_question(question_id){
 			document.querySelectorAll('edit_answer').forEach(el=>{
 				el.addEventListener('click',e=>{
 					e.preventDefault();
+					document.getElementById('update_answer').dataset.id = el.dataset.id;
 					modal_answer(el.dataset.id);
-				})
-			})
-		})
+				});
+			});
+		});
 	}
 }
 
 function modal_answer(answer_id){
-
+	$('#answer_modal').modal('toggle');
 }
