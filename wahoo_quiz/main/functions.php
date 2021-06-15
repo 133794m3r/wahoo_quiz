@@ -45,7 +45,7 @@ function generate_csrf(): string {
 }
 
 //raises a sepcific HTTP error on the header and causes the connection to die optionally.
-function raise_http_error($error_code,$die=true){
+function raise_http_error($error_code,$msg = '', $die=true){
 	$res = 'HTTP/1.0 ';
 	switch($error_code){
 		case 405:
@@ -63,7 +63,7 @@ function raise_http_error($error_code,$die=true){
 		case 500:
 			$res .= ' 500 Internal Server Error';
 	}
-	header($res,$error_code);
+	header($res.$msg,$error_code);
 	if($die)
 		exit();
 }

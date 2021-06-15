@@ -38,7 +38,7 @@
 				<div class="modal-header">
 					<h2 class="modal-title text-center w-100" id="quiz_modal_title">
 						<div id="quiz_desc_container">
-							<span id="quiz_description" class="click_enter">Click to Enter Quiz Title</span>
+							<span id="quiz_description" class="click_enter">Click To Enter Quiz Title</span>
 							<input id="quiz_description_input" hidden="true" value="" maxlength="100"/>
 						</div>
 					</h2>
@@ -90,7 +90,7 @@
 				<div class="modal-header">
 					<h2 class="modal-title text-center w-100" id="quiz_modal_title">
 						<div id="quiz_desc_container">
-							<span id="question_description" class="click_enter">Click to Enter Question Text</span>
+							<span id="question_description" class="click_enter">Click To Enter Question Text</span>
 							<input id="question_description_input" hidden="true" value="" maxlength="100"/>
 						</div>
 					</h2>
@@ -187,10 +187,14 @@ After closing the  answer modal then it'll show the original answer modal with t
 	document.getElementById('get_quiz').addEventListener("click", event=>{
 		const el = document.getElementById('quizzes');
 		const option = el.options[el.selectedIndex];
-		if(option.id !== '-1')
+		console.log(el.options);
+		console.log(el.selectedIndex);
+		if(option.id !== '-1') {
 			document.getElementById('quiz_description').innerText = option.innerText;
+			document.getElementById('update_quiz').dataset.id = option.id;
+		}
 		else{
-			document.getElementById('quiz_description').innerText = 'Click to Change Quiz Title';
+			document.getElementById('quiz_description').innerText = 'Click To Enter Quiz Title';
 		}
 		document.getElementById('quiz_description_input').hidden = true;
 		document.getElementById('quiz_description').hidden = false;
@@ -200,14 +204,17 @@ After closing the  answer modal then it'll show the original answer modal with t
 	document.querySelectorAll('.click_enter').forEach(el=>{
 		el.addEventListener('click',e=>{
 			const input = document.getElementById(`${el.id}_input`);
-			input.value = el.innerText;
+
+			if(el.innerText.substr(0,15) !== 'Click To Enter ')
+				input.value = el.innerText;
 			input.addEventListener('keydown',event=>{
 				if(event.keyCode === 13 || event.key === "Enter"){
 					const input = document.getElementById(`${el.id}_input`);
 					const desc = document.getElementById(`${el.id}`);
 					input.hidden = true;
 					desc.hidden = false;
-					desc.innerText = input.value;
+					if(input.value !== '')
+						desc.innerText = input.value;
 					input.setAttribute('aria-hidden','true');
 					desc.setAttribute('aria-hidden','false');
 				}
@@ -230,7 +237,9 @@ After closing the  answer modal then it'll show the original answer modal with t
 		const question_id = document.getElementById('update_question').dataset.id;
 		if(question_id === '-1')
 			return;
-		document.getElementById('question_answer_title').dataset.id = question_id;
+		const el = document.getElementById('question_answer_title');
+		el.dataset.id = question_id;
+		el.innerText = document.getElementById('question_description').innerText;
 		modal_answer(-1);
 	});
 
@@ -267,6 +276,7 @@ After closing the  answer modal then it'll show the original answer modal with t
 				if(res['ok'] && res['quiz_id']){
 					document.getElementById('update_question').dataset.id = res['quiz_id'];
 				}
+
 			});
 			return;
 		}
@@ -296,6 +306,37 @@ After closing the  answer modal then it'll show the original answer modal with t
 		}
 
 	});
+	document.getElementById('update_answer').addEventListener('click',e=>{
+		const id = document.getElementById('update_answer').dataset.id;
+		if(id === '-1') {
+			submit('/admin/api.php', {
+					'cmd': 'create_answer',
+					'text': document.getElementById('answer_text').value,
+					'question_id': document.getElementById('question_answer_title').dataset.id,
+					'correct':document.getElementById('answer_correct').checked
+			}, res => {
+				if (res['ok']) {
+					document.getElementById('update_answer').dataset.id = res['id'];
+				}
+				else{
+					console.log(res['msg']);
+				}
+			});
+		}
+		else{
+			submit('/admin/api.php',{
+					'cmd': 'edit_answer',
+					'text': document.getElementById('answer_text').value,
+					'question_id': document.getElementById('question_answer_title').dataset.id,
+					'correct':document.getElementById('answer_correct').checked,
+					'answer_id':id
+	  	},res=>{
+				if(!res['ok']){
+					console.log(res['msg']);
+				}
+			})
+	}
+	})
 	window.addEventListener('load',get_quizzes,false);
 </script>
 <?php include('../templates/footer.php'); ?>

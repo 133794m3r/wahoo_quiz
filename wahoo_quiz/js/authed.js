@@ -6,6 +6,7 @@
 function get_quiz(quiz_id){
 	if(quiz_id === -1){
 		$('#quiz_modal').modal('toggle');
+		document.getElementById('questions').innerText = '';
 	}
 	else{
 		document.getElementById('add_question').dataset.id = quiz_id;
@@ -67,8 +68,8 @@ function modal_question(question_id){
 	el.dataset.id = question_id;
 	el.dataset.quizid = document.getElementById('update_quiz').dataset.id;
 	if(question_id === -1) {
-		$('#question_modal').modal('toggle');
 		document.getElementById('add_answer').disabled = true;
+		document.getElementById('question_description').innerText = 'Click to Enter Question Text';
 	}
 	else{
 		document.getElementById('question_description').innerText = document.getElementById(`question-${question_id}-name`).innerText;
@@ -77,26 +78,32 @@ function modal_question(question_id){
 			'quiz_id':el.dataset.quizid,
 			'question_id':el.dataset.id
 		},result=>{
-
-			let content = '';
-			for (let i = 0; i < result['num']; i++) {
-				let correct = result['answers'][i].correct === 1
-				content += `<tr>
-						<td>${i}</td>
-						<td id="answer-${result['answers'][i].id}-name">${result['answers'][i].text}</td>
-						<td><input data-id="${result['answers'][i].id}" data-correct="${correct}" type="checkbox" checked="${correct}" class="question_answer_correct"/></td>
-						<td><a href="#" data-id="${result['answers'][i].id}" class="edit_answer">Edit</a></td>
-					</tr>`
-			}
-			document.querySelectorAll('edit_answer').forEach(el=>{
-				el.addEventListener('click',e=>{
-					e.preventDefault();
-					document.getElementById('update_answer').dataset.id = el.dataset.id;
-					modal_answer(el.dataset.id);
+			console.log(result);
+			if(result['ok']) {
+				let content = '';
+				for (let i = 0; i < result['num']; ++i) {
+					let correct = result['answers'][i].correct === 1
+					content += `<tr>
+							<td>${i}</td>
+							<td id="answer-${result['answers'][i].id}-name">${result['answers'][i].text}</td>
+							<td><input data-id="${result['answers'][i].id}" data-correct="${correct}" type="checkbox" checked="${correct}" class="question_answer_correct"/></td>
+							<td><a href="#" data-id="${result['answers'][i].id}" class="edit_answer">Edit</a></td>
+						</tr>`
+				}
+				document.getElementById('answers').innerHTML = content;
+				document.querySelectorAll('.edit_answer').forEach(el => {
+					el.addEventListener('click', e => {
+						e.preventDefault();
+						document.getElementById('update_answer').dataset.id = el.dataset.id;
+						modal_answer(el.dataset.id);
+					});
 				});
-			});
+			}
 		});
+
+		document.getElementById('add_answer').disabled = false;
 	}
+	$('#question_modal').modal('toggle');
 }
 
 function modal_answer(answer_id){

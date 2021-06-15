@@ -121,6 +121,7 @@ switch($json_params['cmd']){
 			if($_SESSION['role'] === 2)
 				$q .= ' and owner_id = ?';
 			$stmt = $QUIZ->prepare($q);
+			error_log(print_r($_SESSION,TRUE));
 			if ($_SESSION['role'] === 2)
 				$stmt->bind_param('iii',$json_params['quiz_id'],$json_params['question_id'],$_SESSION['id']);
 			else
@@ -131,6 +132,7 @@ switch($json_params['cmd']){
 			if($res->num_rows === 0){
 				$final_result['ok'] = false;
 				$final_result['error'] = 'No questions found.';
+				$final_result['num'] = 0;
 			}
 			else{
 				$final_result['num'] = $res->num_rows;
@@ -212,46 +214,44 @@ switch($json_params['cmd']){
 	case 'create_question':
 		//the answers is an array of all of the answers so we make sure that it's there.
 		//we also make sure that there's at least 1 marked correct and the length is more than 0.
-		if(!isset($json_params['question_text']) || !isset($json_params['quiz_id'])
-			|| !isset($json_params['question_text'])
-			//|| !isset($json_params['answers'])
-			//|| count($json_params['answers']) === 0
+		if(!isset($json_params['text']) || !isset($json_params['quiz_id'])
 		)
-			raise_http_error(400);
+			raise_http_error(400,'text or quiz_id not set.');
 
 		//we allow SATA as an option by them just simply selecting more than 1 answer as correct.
 		//$correct_count = 0;
 		$query_values = '';
 		$param_types = '';
-//		foreach($json_params['answers'] as $item){
-//			//should always be an array of 2 values. First should be the answer second is if it's correct.
-//			if(count($item) != 2)
-//				raise_http_error(400);
-//			//increment it by 1.
-//			if($item[1] === true)
-//				$correct_count++;
-//			$query_values .=', (?, ?, ?)';
-//			$param_types .= 'isi';
-//		}
-//		if($correct_count === 0){
-//			$final_result['ok'] = false;
-//			$final_result['error'] = 'You need at least one answer to be correct.';
-//		}
-//		else{
+
 			$stmt = $QUIZ->prepare('insert into questions(text,quiz_id) values(?,?)');
-			$stmt->bind_param('si',$json_params['question_text'],$json_params['quiz_id']);
+			$stmt->bind_param('si',$json_params['text'],$json_params['quiz_id']);
 			$stmt->execute();
 			$question_id = $stmt->insert_id;
 			$stmt->close();
-//			$stmt = $QUIZ->prepare('insert into question_answers(question_id, text, correct) '.$query_values);
-//			$stmt->bind_param($param_types,...$json_params['answers']);
-//			$stmt->execute();
-//			error_log($stmt->insert_id,4,'/tmp/php_insert_test.log');
-//			$stmt->close();
 			$final_result['ok'] = true;
 			$final_result['id'] = $question_id;
-//		}
 		break;
+	case 'create_answer':
+		//check that we have the correct parameters
+		if(!array_key_exists('question_id',$json_params) || !array_key_exists('text',$json_params) || !array_key_exists('correct',$json_params))
+			raise_http_error(400);
+
+		$param_str = '';
+		$correct = 0;
+		$stmt = $QUIZ->prepare('insert into question_answers(question_id,text,correct) values(?,?,?)');
+		$stmt->bind_param('isi',$json_params['question_id'],$json_params['text'],$json_params['correct']);
+		$stmt->execute();
+		error_log(print_r($stmt,true));
+		if($stmt->affected_rows == 0) {
+			$final_result['ok'] = false;
+			$final_result['msg'] = 'Insert Failed';
+		}
+		else{
+			$final_result['id'] = $stmt->insert_id;
+		}
+		$stmt->close();
+		break;
+
 }
 
 header('Content-type: application/json; charset=utf-8');
