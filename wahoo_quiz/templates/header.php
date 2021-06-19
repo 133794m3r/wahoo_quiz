@@ -5,17 +5,17 @@
 			<?php echo $title; ?>
 		</title>
 		<meta charset="UTF-8">
-		<link href="favicon.ico"  rel="shortcut icon">
-		<link href="../css/master.css" rel="stylesheet" />
-		<link href="../css/bs-darkly.min.css" rel="stylesheet" />
+		<link href="/static/favicon.ico"  rel="shortcut icon">
+		<link href="/static/css/master.css" rel="stylesheet" />
+		<link href="/static/css/bs-darkly.min.css" rel="stylesheet" />
 
-		<script src="../js/jquery.min.js" async></script>
-		<script src="../js/master.js" async></script>
-		<script src="../js/client.js" async></script>
+		<script src="/static/js/jquery.min.js" async></script>
+		<script src="/static/js/master.js" async></script>
+		<script src="/static/js/client.js" async></script>
 		<script type="text/javascript">
 			(function() {
 
-				const bs_src = "../js/bootstrap.min.js";
+				const bs_src = "/static/js/bootstrap.min.js";
 
 				const async_load = function () {
 					let first, s;
@@ -57,7 +57,7 @@
 						<?php if(isset($_SESSION['username'])): ?>
 							<li class="nav-item"><a class="nav-link" href="/main/quiz_creator.php">Quiz Creator</a></li>
 							<li class="nav-item"><a class="nav-link" href="/main/user_quizzes.php"><?php echo $_SESSION['username'] ?>'s Quizzes</a>
-							<li class="nav-item"><a class="nav-link" href="logout.php">Log out</a></li>
+							<li class="nav-item"><a class="nav-link" href="/logout.php">Log out</a></li>
 						<?php else: ?>
 						<li class="nav-item">
 							<a class="nav-link" href="login.php">Login</a>

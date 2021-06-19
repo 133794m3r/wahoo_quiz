@@ -176,13 +176,7 @@
 			</div>
 		</div>
 	</div>
-<!--
-UX flow
-First I'm going to have them select from their list of quizzes. Then after selecting one a modal dialog would show up and then it'd list the answers that are currently part of that quiz. With an "add quiz" button.
-Clicking that button or clicking the "edit" button(will be a glyph from fontawesome), it'll open up the answer with the answers letting them edit the answers and etc in a new modal.
 
-After closing the  answer modal then it'll show the original answer modal with the state in the original position.
--->
 <script type="text/javascript" src="/js/authed.js"></script>
 <script type="text/javascript">
 	"use strict";
