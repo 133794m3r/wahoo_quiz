@@ -121,7 +121,6 @@ switch($json_params['cmd']){
 			if($_SESSION['role'] === 2)
 				$q .= ' and owner_id = ?';
 			$stmt = $QUIZ->prepare($q);
-			error_log(print_r($_SESSION,TRUE));
 			if ($_SESSION['role'] === 2)
 				$stmt->bind_param('iii',$json_params['quiz_id'],$json_params['question_id'],$_SESSION['id']);
 			else
@@ -241,7 +240,7 @@ switch($json_params['cmd']){
 		$stmt = $QUIZ->prepare('insert into question_answers(question_id,text,correct) values(?,?,?)');
 		$stmt->bind_param('isi',$json_params['question_id'],$json_params['text'],$json_params['correct']);
 		$stmt->execute();
-		error_log(print_r($stmt,true));
+
 		if($stmt->affected_rows == 0) {
 			$final_result['ok'] = false;
 			$final_result['msg'] = 'Insert Failed';

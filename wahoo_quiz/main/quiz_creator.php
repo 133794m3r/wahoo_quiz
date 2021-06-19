@@ -153,16 +153,18 @@
 					</button>
 				</div>
 				<div class="modal-body">
+					<form>
 				   <div class="row mt-1 mb-2">
-				 	  <div class="col-6">
-						  <label for="answer_text">Answer: </label>
-							<textarea cols="100" rows="3" type="text" maxlength="255" id="answer_text" placeholder="Enter Answer Text Here" aria-placeholder="Enter Answer Text Here"></textarea>
+				 	  <div class="col-10 form-outline mb-2">
+							<label class="form-label" for="answer_text">Answer Text</label>
+							<textarea rows="3" class="form-control" type="text" maxlength="255" id="answer_text"  placeholder="Enter answer text here." aria-placeholder="Enter answer text here."></textarea>
 					   </div>
-					   <div class="col-2">
-						   <label for="answer_correct">Correct</label>
+					   <div class="col-2 form-check">
+						   <label for="answer_correct" class="form-check-label">Correct</label>
 						   <input type="checkbox" class="custom-checkbox" id="answer_correct" />
 					   </div>
 				   </div>
+					</form>
 			    </div>
 				<div class="modal-footer">
 					<div class="row w-80 d-flex flex-row">
@@ -317,6 +319,7 @@ After closing the  answer modal then it'll show the original answer modal with t
 			}, res => {
 				if (res['ok']) {
 					document.getElementById('update_answer').dataset.id = res['id'];
+
 				}
 				else{
 					console.log(res['msg']);
@@ -333,6 +336,14 @@ After closing the  answer modal then it'll show the original answer modal with t
 	  	},res=>{
 				if(!res['ok']){
 					console.log(res['msg']);
+					const correct = document.getElementById('answer_correct').checked;
+					const html = `<tr>
+												<td>${res.id}</td>
+												<td id='answer-${res.id}>${document.getElementById('answer_text').value}</td>
+												<td><input data-id="${res.id}" data-correct="${correct}" type="checkbox" checked="${correct}" class="question_answer_correct"/></td>
+												<td><a href="#" data-id="${res.id}" class="edit_answer">Edit</a></td>
+											</tr>`;
+					document.getElementById('answers').insertAdjacentHTML('afterend',html);
 				}
 			})
 	}

@@ -85,16 +85,18 @@ function modal_question(question_id){
 					let correct = result['answers'][i].correct === 1
 					content += `<tr>
 							<td>${i}</td>
-							<td id="answer-${result['answers'][i].id}-name">${result['answers'][i].text}</td>
-							<td><input data-id="${result['answers'][i].id}" data-correct="${correct}" type="checkbox" checked="${correct}" class="question_answer_correct"/></td>
+							<td id="answer-name-${result['answers'][i].id}">${result['answers'][i].text}</td>
+							<td><input id="correct-${result['answers'][i].id}" data-id="${result['answers'][i].id}" data-correct="${correct}" type="checkbox" ${(correct===true)?"checked='True'":''} class="question_answer_correct"/></td>
 							<td><a href="#" data-id="${result['answers'][i].id}" class="edit_answer">Edit</a></td>
 						</tr>`
 				}
+				console.log(content);
 				document.getElementById('answers').innerHTML = content;
 				document.querySelectorAll('.edit_answer').forEach(el => {
 					el.addEventListener('click', e => {
 						e.preventDefault();
 						document.getElementById('update_answer').dataset.id = el.dataset.id;
+						document.getElementById('question_answer_title').innerText = document.getElementById('question_description').innerText;
 						modal_answer(el.dataset.id);
 					});
 				});
@@ -108,4 +110,12 @@ function modal_question(question_id){
 
 function modal_answer(answer_id){
 	$('#answer_modal').modal('toggle');
+	document.getElementById('update_answer').dataset.id = answer_id;
+	if(answer_id === '-1'){
+		document.getElementById('answer_text').value = '';
+	}
+	else{
+		document.getElementById('answer_text').value = document.getElementById(`answer-name-${answer_id}`).innerText;
+		document.getElementById('answer_correct').checked = document.getElementById(`answer-correct-${answer_id}`).checked;
+	}
 }
