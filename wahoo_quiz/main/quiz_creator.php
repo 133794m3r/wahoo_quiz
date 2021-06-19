@@ -2,7 +2,7 @@
 	session_start();
 	require 'functions.php';
 	if(!array_key_exists('role',$_SESSION) || $_SESSION['role'] > 2)
-		raise_http_error(403);
+		header('Location: /login.php');
 
 	//should never be posted to. We always will hit the API.
 	if($_SERVER['REQUEST_METHOD'] != 'GET')
@@ -177,14 +177,12 @@
 		</div>
 	</div>
 
-<script type="text/javascript" src="/js/authed.js"></script>
+<script type="text/javascript" src="/static/js/authed.js"></script>
 <script type="text/javascript">
 	"use strict";
 	document.getElementById('get_quiz').addEventListener("click", event=>{
 		const el = document.getElementById('quizzes');
 		const option = el.options[el.selectedIndex];
-		console.log(el.options);
-		console.log(el.selectedIndex);
 		if(option.id !== '-1') {
 			document.getElementById('quiz_description').innerText = option.innerText;
 			document.getElementById('update_quiz').dataset.id = option.id;
@@ -329,7 +327,6 @@
 					'answer_id':id
 	  	},res=>{
 				if(!res['ok']){
-					console.log(res['msg']);
 					const correct = document.getElementById('answer_correct').checked;
 					const html = `<tr>
 												<td>${res.id}</td>

@@ -29,7 +29,7 @@ switch($json_params['cmd']){
 
 		//the quiz pass is actually the quiz_owner_id+quiz_id but b64 encoded and packed.
 		$stmt = $QUIZ->prepare( 'select quizzes.name as quiz_name, questions.text as question_text, questions.id as question_id, GROUP_CONCAT( (select id,text from question_answers where question_id = questions.id) ) as answers from quizzes inner join questions on quizzes.id = questions.quiz_id where quizzes.id = ? and quizzes.owner_id = ? LIMIT 1');
-		$quiz_parts = unpack('NN',base64_decode($json_params['quiz_pass']));
+		$quiz_parts = unpack('NN',b64_decode($json_params['quiz_pass']));
 		$stmt->bind_param('ii',$quiz_parts[1],$quiz_parts[0]);
 
 		$stmt->execute();

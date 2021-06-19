@@ -110,6 +110,8 @@ function login($username,$password): bool {
 			if($role < 3)
 				//for now it is letting all of them be admin but that'll change later.
 				$_SESSION['editor'] = true;
+			if($role < 2)
+				$_SESSION['admin'] = true;
 			return true;
 		}
 		else{
