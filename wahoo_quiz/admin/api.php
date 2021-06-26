@@ -250,7 +250,36 @@ switch($json_params['cmd']){
 		}
 		$stmt->close();
 		break;
-
+	case 'get_question_analytics':
+		//will eventually just give errors to the person.
+		if(!array_key_exists('quiz_id',$json_params)){
+			$final_result['ok'] = false;
+			$final_result['error'] = 'Quiz id not set.';
+		}
+		else if(array_search($json_params['quiz_id'],$_SESSION['quiz_ids'])===false){
+			$final_result['ok'] = false;
+			$final_result['error'] = 'Quiz isn\'t yours.';
+		}
+		else {
+			$stmt = $QUIZ->prepare('select text,answered,correct,quiz_id as id from question_analytics qa inner join questions q on question_id where q.quiz_id = ?');
+			$stmt->bind_param('d', $json_params['quiz_id']);
+			if (!$stmt->execute()) {
+				$final_result['ok'] = false;
+				$final_result['error'] = 'Quiz id was no valid.';
+			}
+			else {
+				$res = $stmt->get_result();
+				if ($res->num_rows === 0) {
+					$final_result['ok'] = false;
+					$final_result['error'] = "No questions with analytics found.";
+				}
+				else {
+					$final_result['rows'] = $res->num_rows;
+					$final_result['result'] = $res->fetch_all(MYSQLI_ASSOC);
+				}
+			}
+		}
+		break;
 }
 
 header('Content-type: application/json; charset=utf-8');

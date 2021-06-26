@@ -20,24 +20,24 @@ function parse_questions(result){
 	if(!result['ok'])
 		console.log(result['error']);
 
-		let content = '';
-		for (let i = 0; i < result['num']; i++) {
-			content += `<tr>
+	let content = '';
+	for (let i = 0; i < result['num']; i++) {
+		content += `<tr>
 						<td>${i}</td>
 						<td id="question-${result['results'][i].id}-name">${result['results'][i].text}</td>
 						<td><a href="#" data-id="${result['results'][i].id}" class="edit_question">Edit</a></td>
 					</tr>`
-		}
+	}
 
-		document.getElementById('questions').innerHTML = content;
-		document.querySelectorAll('.edit_question').forEach(el => {
-			el.addEventListener('click', e => {
-				e.preventDefault();
+	document.getElementById('questions').innerHTML = content;
+	document.querySelectorAll('.edit_question').forEach(el => {
+		el.addEventListener('click', e => {
+			e.preventDefault();
 
-				modal_question(el.dataset.id);
-			});
+			modal_question(el.dataset.id);
 		});
-		$('#quiz_modal').modal('toggle');
+	});
+	$('#quiz_modal').modal('toggle');
 }
 
 function get_quizzes(){

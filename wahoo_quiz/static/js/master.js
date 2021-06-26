@@ -3,7 +3,7 @@
  * Macarthur Inbody <admin-contact@transcendental.us>
  * Licensed under AGPLv3 Or Later (2021)
  */
-
+"use strict";
 /**
  *
  * The function below is a wrapper around fetch to make it work with POST requests when using Django.
@@ -77,4 +77,44 @@ function cookie_value(name){
 		}
 	}
 	return value;
+}
+
+
+//TODO: Use the Bootstrap modal's event when it's hidden return all fields back to default for _all_ models when we're just overwriting stuff anyways this way we don't have to anything if it's the default state anyways.
+
+/**
+ * Function to copy to the clipboard.
+ * @param input_text The text to copy to the clipboard.
+ */
+function copyToClipBoard(input_text){
+
+	if(!navigator.clipboard){
+		const textArea = document.createElement("textarea");
+		textArea.value = input_text;
+
+		// Avoid scrolling to bottom
+		textArea.style.top = "0";
+		textArea.style.left = "0";
+		textArea.style.position = "fixed";
+
+		document.body.appendChild(textArea);
+		textArea.focus();
+		textArea.select();
+
+		try {
+			let successful = document.execCommand('copy');
+			let msg = successful ? 'successful' : 'unsuccessful';
+		}
+		catch (err) {
+			console.error(err);
+		}
+		document.body.removeChild(textArea);
+	}
+	else{
+		navigator.clipboard.writeText(input_text).then(function () {
+			console.log('worked');
+		}, function () {
+			console.log('did not work');
+		});
+	}
 }

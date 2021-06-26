@@ -3,7 +3,7 @@
  * Macarthur Inbody <admin-contact@transcendental.us>
  * Licensed under AGPLv3 Or Later (2021)
  */
-
+"use strict";
 function dismiss_alert(){
 
 }
