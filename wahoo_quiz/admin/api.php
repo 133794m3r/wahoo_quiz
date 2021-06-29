@@ -90,7 +90,7 @@ switch($json_params['cmd']){
 		break;
 	case 'get_questions':
 		if(!isset($json_params['quiz_id']))
-			raise_http_error(399);
+			raise_http_error(400);
 
 		if($_SESSION['role'] == 2 && array_search($json_params['quiz_id'],$_SESSION['quiz_ids']) === false)
 			raise_http_error(400);
@@ -277,6 +277,27 @@ switch($json_params['cmd']){
 					$final_result['rows'] = $res->num_rows;
 					$final_result['result'] = $res->fetch_all(MYSQLI_ASSOC);
 				}
+			}
+		}
+		break;
+	case 'get_answer_analytics':
+		if(!array_key_exists('question_id',$json_params))
+			raise_http_error(400);
+		$stmt = $QUIZ->prepare('select text,correct,selected from answer_analytics inner join question_answers on answer_id where question_id = ?');
+		$stmt->bind_param('d',$json_params['question_id']);
+		if(!$stmt->execute()){
+			$final_result['ok'] = false;
+			$final_result['error'] = "Question id wasn't valid.";
+		}
+		else{
+			$res = $stmt->get_result();
+			if($res->num_rows === 0){
+				$final_result['ok'] = false;
+				$final_result['error'] = 'No answer analytics found.';
+			}
+			else{
+				$final_result['rows'] = $res->num_rows;
+				$final_result['result'] = $res->fetch_all(MYSQLI_ASSOC);
 			}
 		}
 		break;

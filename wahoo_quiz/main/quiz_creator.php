@@ -178,6 +178,7 @@
 	</div>
 
 <script type="text/javascript" src="/static/js/authed.js"></script>
+<script type="text/javascript" src="/static/js/quiz_creator.js"></script>
 <script type="text/javascript">
 	"use strict";
 	document.getElementById('get_quiz').addEventListener("click", event=>{

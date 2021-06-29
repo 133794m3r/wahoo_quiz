@@ -94,6 +94,53 @@ $_SESSION['quiz_ids'] = array();
 		</div>
 	</div>
 </div>
+
+<div class="modal fade" id="question_modal" role="dialog" aria-labelledby="quiz_modal_title" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h2 class="modal-title text-center w-100" id="">
+					<div>
+						<span id="question_title" data-id="-1">Quiz Title</span>
+					</div>
+				</h2>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<table class="table table-striped">
+					<thead>
+					<tr>
+						<td class="text-center font-weight-bold w-5">
+							Answer Number
+						</td>
+						<td class="text-center font-weight-bold w-70">
+							Answer Text
+						</td>
+						<td class="text-center font-weight-bold w-7">
+							Selected %
+						</td>
+						<td class="text center font-weight-bold w-7">
+							Correct Answer
+						</td>
+					</tr>
+					</thead>
+					<tbody id="answers">
+
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<div class="row w-80 d-flex flex-row">
+					<div class="p-2">
+
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 <script type="text/javascript">
 	"use strict";
 	function show_alert(msg,timeout=4000,error=false){
@@ -138,7 +185,6 @@ $_SESSION['quiz_ids'] = array();
 		  	show_alert('Error: '+res['error'],5000,true);
 	  	}
 			else {
-
 				let content = '';
 				if (res['rows'] === 0) {
 					content = `<tr><td>No one's answered any questions.</td></tr>`
@@ -147,19 +193,54 @@ $_SESSION['quiz_ids'] = array();
 					for (let i = 0; i < res['rows']; i++) {
 						const row = res['result'][i];
 						content += `<tr><td>${i}</td>
-												<td>${row['text']}</td>
-												<td>${Math.round((row['correct'] / row['answered']) * 100)}<td>
+												<td id="question_name_${row['id']}" data-count="${row['answered']}">${row['text']}</td>
+												<td>${Math.round((row['correct'] / row['answered']) * 10000)/100}<td>
 												<td>${row['answered']}</td>
 												<td class='answer_analytics' data-id='${row['id']}'>Answer Analytics</td><tr/>`;
 					}
 				}
 				console.log(content);
 			  document.getElementById('questions').innerHTML = content;
-		  	$('#quiz_modal').modal('toggle')
+			  document.querySelectorAll('.answer_analytics').forEach(el=>{
+			  	el.addEventListener('click',e=>{
+			  		get_answers(el.dataset.id);
+					});
+				});
+		  	$('#quiz_modal').modal('toggle');
 	  	}
-;
 		});
+	}
 
+	function get_answers(question_id){
+  	const el = document.getElementById('question_name_${question_id}');
+  	document.getElementById('question_title').innerText = el.innerText;
+  	const count = parseInt(el.dataset.count);
+  	submit('/admin/api.php',{
+  		'cmd':'get_'
+		},res=>{
+			if(!res['ok']){
+				console.log(res['error']);
+				show_alert('Error: '+res['error'],5000,true);
+				return;
+			}
+			let content = '';
+			if(res['rows'] === 0){
+				content = `<tr><td>No one's answered any questions?! You shouldn't be seeing this</td></tr>`;
+			}
+			else{
+				for(let i=0;i<res['rows'];i++){
+					const row = res['result'][i];
+					content += `
+						<tr><td>${i}</td>
+							<td>${row['text']}</td>
+							<td>${Math.round( (row['selected']/count)*10000 )/100}</td>
+							<td>${(row['correct'] == 1)?'Yes':'No'}</td>
+						</tr>
+					`
+				}
+			}
+			$('#question_modal').modal('toggle');
+	});
 	}
 </script>
 <?php include '../templates/footer.php'; ?>
